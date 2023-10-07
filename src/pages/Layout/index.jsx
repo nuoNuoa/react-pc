@@ -6,9 +6,9 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons'
 import './index.scss'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '@/store'
 import { observer } from 'mobx-react-lite'
 const { Header, Sider } = Layout
@@ -28,33 +28,41 @@ const items = [
   getItem('发布文章', '/publish', <EditOutlined />),
 ]
 
-const PcLayout = () => {
+const PcLayout = observer(() => {
   const navigate = useNavigate()
 
   const routerChange = (e) => {
     navigate(e.key, { replace: true })
   }
+  const location = useLocation()
+  const [selectedKey, setSelectedKey] = useState('')
+  useEffect(() => {
+    // 在路由变化时更新选中的菜单项
+    const path = location.pathname
+    setSelectedKey(path)
+  }, [location])
 
-  const { userStore, loginStore } = useStore()
+  const { userStore, loginStore, channelStore } = useStore()
   // 获取用户数据
   useEffect(() => {
     try {
       userStore.getUserInfo()
+      channelStore.loadChannelList()
     } catch {
       message.error('获取信息失败')
     }
-  }, [userStore])
+  }, [userStore, channelStore])
 
   const onLogout = () => {
     loginStore.loginOut()
     navigate('/login')
   }
   return (
-    <Layout>
-      <Header>
+    <Layout style={{ height: '100vh' }}>
+      <Header className="header">
         <div className="logo" />
         <div className="user-info">
-          <span className="user-name">user.name</span>
+          <span className="user-name">{userStore.userInfo.name}</span>
           <span className="user-logout">
             <Popconfirm
               title="是否确认退出"
@@ -71,7 +79,7 @@ const PcLayout = () => {
           <Menu
             mode="inline"
             theme="dark"
-            defaultSelectedKeys={['1']}
+            selectedKeys={[selectedKey]}
             style={{ height: '100%', borderRight: 0 }}
             items={items}
             onClick={routerChange}
@@ -83,5 +91,5 @@ const PcLayout = () => {
       </Layout>
     </Layout>
   )
-}
-export default observer(PcLayout)
+})
+export default PcLayout

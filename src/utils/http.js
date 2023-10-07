@@ -19,11 +19,13 @@ http.interceptors.request.use((config) => {
 })
 http.interceptors.response.use((response) => {
   return response.data
-}, (error) => {
-  if (error.response.status === 401) {
-    clearToken()
-    history.push('/login')
-  }
-  return Promise.reject(error)
-})
+},
+  (error) => {
+    if (error.response.status === 401) {
+      clearToken()
+      // 跳转到登录页
+      history.push('/login')
+    }
+    return Promise.reject(error)
+  })
 export { http }
